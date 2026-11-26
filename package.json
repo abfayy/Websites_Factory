@@ -1,0 +1,21 @@
+{
+  "name": "websites-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "AI Website Factory - template engine, QA gates and CI/CD for one-page Starter websites on Cloudflare Pages.",
+  "author": "abdullah fayyaz",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "validate": "node scripts/validate.mjs --all",
+    "build": "node scripts/build.mjs --all",
+    "qa": "node scripts/qa.mjs --all",
+    "check": "npm test && npm run test:form && npm run validate && npm run build && npm run qa",
+    "preview": "node scripts/preview.mjs",
+    "orders:import": "node scripts/orders-import.mjs",
+    "test:form": "node google/test-form-script.cjs"
+  }
+}
