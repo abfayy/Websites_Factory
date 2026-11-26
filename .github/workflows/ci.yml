@@ -1,0 +1,40 @@
+# Runs on every pull request and every push except main (main is handled by deploy.yml after merge).
+# No secrets are used here. Never switch this to pull_request_target: it would hand secrets to PR code.
+# Author/watermark: abdullah fayyaz
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Customer data must never be committed
+        run: |
+          if git ls-files | grep -E '^\.orders/|\.env$|\.pem$|\.key$'; then
+            echo "::error::A private file is tracked by git (see list above)"; exit 1
+          fi
+      - name: Tests, validate, build, QA
+        run: npm run check
+      - name: Upload QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report
+          path: reports/
+          if-no-files-found: ignore

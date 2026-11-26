@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "orderId": "WEB-0000",
+  "slug": "al-noor-bakery",
+  "liveUrl": "https://al-noor-bakery.pages.dev/",
+  "language": "en",
+  "brand": {
+    "name": "Al-Noor Bakery",
+    "tagline": "Fresh cakes and bakes, every morning",
+    "niche": "restaurant",
+    "city": "Lahore",
+    "address": "Shop 12, Main Market, Gulberg III, Lahore",
+    "hours": "Mon-Sat 9am-10pm, Sunday 12pm-10pm",
+    "logo": null
+  },
+  "design": { "theme": "warm", "color": "orange", "tone": "friendly" },
+  "seo": {
+    "title": "Al-Noor Bakery | Custom Cakes in Gulberg, Lahore",
+    "description": "Al-Noor Bakery in Gulberg, Lahore bakes fresh custom birthday cakes, cupcakes and daily breads. Order on WhatsApp and pick up the same day."
+  },
+  "hero": {
+    "headline": "Fresh cakes, baked for your celebrations",
+    "subheadline": "Custom birthday cakes, cupcakes and fresh bread from our oven in Gulberg, Lahore.",
+    "cta": "Order on WhatsApp",
+    "image": null
+  },
+  "about": {
+    "title": "Baking with care since day one",
+    "paragraphs": [
+      "Al-Noor Bakery is a family-run bakery in Gulberg, Lahore. We bake every morning using fresh butter, real eggs and no shortcuts.",
+      "From a simple birthday cake to a full dessert table, we design every order around your taste and your budget."
+    ],
+    "highlights": ["Baked fresh daily", "Custom designs", "Same-day pickup"]
+  },
+  "services": {
+    "title": "What we bake",
+    "showPrices": true,
+    "items": [
+      { "name": "Custom birthday cake", "description": "1 kg cake in your choice of flavour and design.", "price": "From Rs. 2,500" },
+      { "name": "Cupcake box", "description": "Box of 6 cupcakes with buttercream frosting.", "price": "Rs. 900" },
+      { "name": "Fresh bread", "description": "Milk bread and brown bread baked every morning." }
+    ]
+  },
+  "testimonials": [
+    { "quote": "The cake looked beautiful and tasted even better. Everyone at the party asked where it was from.", "author": "Ayesha", "source": "customer" }
+  ],
+  "faq": [
+    { "q": "How early should I order a custom cake?", "a": "Please order at least one day ahead on WhatsApp. Simple cakes can sometimes be ready the same day." },
+    { "q": "Do you deliver?", "a": "We offer pickup from our shop. Message us on WhatsApp to ask about delivery in your area." }
+  ],
+  "contact": {
+    "whatsapp": "+92 300 0000000",
+    "phone": "+92 300 0000000",
+    "email": "",
+    "mapUrl": "https://maps.google.com/?q=Gulberg+III+Lahore",
+    "show": ["whatsapp", "call", "map"]
+  },
+  "sections": ["about", "services", "testimonials", "faq", "contact"]
+}

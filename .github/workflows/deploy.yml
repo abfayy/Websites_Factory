@@ -1,0 +1,110 @@
+# Deploys ONLY the customer sites that changed on main to Cloudflare Pages (one Pages project per customer).
+# Needs repository secrets: CLOUDFLARE_API_TOKEN (permission "Cloudflare Pages - Edit") and CLOUDFLARE_ACCOUNT_ID.
+# No AI and no API cost here: the site HTML was already produced by Claude Code and is built by plain Node.
+# Author/watermark: abdullah fayyaz
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ['tenants/**', 'engine/**', 'schema/**', '.github/workflows/deploy.yml']
+  workflow_dispatch:
+    inputs:
+      tenant:
+        description: 'Tenant folder to (re)deploy, or "all"'
+        required: true
+        default: 'all'
+
+permissions:
+  contents: read
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.m.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: m
+        env:
+          INPUT_TENANT: ${{ inputs.tenant }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$INPUT_TENANT" = "all" ]; then
+              M=$(node scripts/changed-tenants.mjs 0000000000000000000000000000000000000000)
+            else
+              # filtered through the same slug rules as the automatic path
+              M=$(node scripts/changed-tenants.mjs 0000000000000000000000000000000000000000 | node -e '
+                const want = process.argv[1]; const all = JSON.parse(require("fs").readFileSync(0, "utf8"));
+                console.log(JSON.stringify(all.filter((t) => t === want)));' "$INPUT_TENANT")
+            fi
+          else
+            # changes to engine/ or schema/ redeploy every customer, so old sites also get fixes
+            M=$(node scripts/changed-tenants.mjs "$BEFORE" HEAD --include-engine)
+          fi
+          echo "Tenants to deploy: $M"
+          echo "matrix=$M" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production   # add "required reviewers" to this environment in GitHub if you want a manual approval
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        tenant: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    concurrency:
+      group: deploy-${{ matrix.tenant }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate, build, QA (this tenant only)
+        run: |
+          node scripts/validate.mjs "${{ matrix.tenant }}"
+          node scripts/build.mjs "${{ matrix.tenant }}"
+          node scripts/qa.mjs "${{ matrix.tenant }}"
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        uses: cloudflare/wrangler-action@v3
+        env:   # also exported for preCommands, so "wrangler pages project create" is authenticated
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          preCommands: npx wrangler pages project create "${{ matrix.tenant }}" --production-branch=main || true
+          command: pages deploy "dist/${{ matrix.tenant }}" --project-name="${{ matrix.tenant }}" --branch=main
+      - name: Smoke test the live site
+        env:
+          DEPLOY_URL: ${{ steps.deploy.outputs.deployment-url }}
+          TENANT: ${{ matrix.tenant }}
+        run: |
+          set -euo pipefail
+          if [ -z "$DEPLOY_URL" ]; then echo "::warning::wrangler did not report a deployment URL"; exit 0; fi
+          # deployment-url looks like https://<hash>.<project>.pages.dev ; drop the hash to get the production address
+          PROD=$(echo "$DEPLOY_URL" | sed -E 's#^(https://)[^.]+\.#\1#')
+          sleep 5
+          curl -fsS -D /tmp/h -o /tmp/body "$PROD/"
+          grep -qi '^content-security-policy:' /tmp/h || { echo "::error::CSP header missing on $PROD"; exit 1; }
+          grep -q '<h1' /tmp/body || { echo "::error::no <h1> on $PROD"; exit 1; }
+          {
+            echo "### $TENANT is live"
+            echo ""
+            echo "Production address: $PROD/"
+            echo ""
+            echo "Copy this into the **live_url** column of the order and set status to DEPLOYED."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,146 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tenant.schema.json",
+  "$comment": "abdullah fayyaz - contract between the starter-worker agent (writes tenant.json) and the template engine (renders it). Public business information ONLY: never payment data, order e-mail or payer details.",
+  "title": "Starter website tenant",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "orderId", "slug", "language", "brand", "design", "seo", "hero", "contact"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "orderId": { "type": "string", "pattern": "^WEB-[0-9]{4,}$" },
+    "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$" },
+    "liveUrl": { "type": "string", "pattern": "^$|^https://[a-z0-9.-]+\\.pages\\.dev/?$", "description": "Filled by the deploy step once the real *.pages.dev address is known." },
+    "language": { "enum": ["en", "ur", "roman-ur"] },
+
+    "brand": {
+      "type": "object", "additionalProperties": false, "required": ["name", "niche", "city"],
+      "properties": {
+        "name": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "tagline": { "type": "string", "maxLength": 100 },
+        "niche": { "enum": ["restaurant", "beauty", "retail", "clinic", "fitness", "education", "realestate", "services", "events", "freelancer", "other"] },
+        "city": { "type": "string", "minLength": 2, "maxLength": 60 },
+        "address": { "type": "string", "maxLength": 200 },
+        "hours": { "type": "string", "maxLength": 120 },
+        "logo": { "type": ["string", "null"], "pattern": "^assets/[a-zA-Z0-9._-]+\\.(png|jpe?g|webp|avif|svg)$" }
+      }
+    },
+
+    "design": {
+      "type": "object", "additionalProperties": false, "required": ["theme"],
+      "properties": {
+        "theme": { "enum": ["clean", "bold", "warm", "elegant", "minimal"] },
+        "color": { "enum": ["blue", "green", "red", "orange", "purple", "teal", "pink", "black-gold"] },
+        "tone": { "enum": ["professional", "friendly", "premium", "youthful"] }
+      }
+    },
+
+    "seo": {
+      "type": "object", "additionalProperties": false, "required": ["title", "description"],
+      "properties": {
+        "title": { "type": "string", "minLength": 10, "maxLength": 60 },
+        "description": { "type": "string", "minLength": 50, "maxLength": 160 }
+      }
+    },
+
+    "hero": {
+      "type": "object", "additionalProperties": false, "required": ["headline"],
+      "properties": {
+        "headline": { "type": "string", "minLength": 5, "maxLength": 90 },
+        "subheadline": { "type": "string", "maxLength": 200 },
+        "cta": { "type": "string", "maxLength": 40 },
+        "image": { "type": ["string", "null"], "pattern": "^assets/[a-zA-Z0-9._-]+\\.(png|jpe?g|webp|avif)$" },
+        "imageAlt": { "type": "string", "maxLength": 120 }
+      }
+    },
+
+    "about": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "maxLength": 60 },
+        "paragraphs": { "type": "array", "maxItems": 4, "items": { "type": "string", "minLength": 20, "maxLength": 700 } },
+        "highlights": { "type": "array", "maxItems": 6, "items": { "type": "string", "minLength": 2, "maxLength": 50 } }
+      }
+    },
+
+    "services": {
+      "type": "object", "additionalProperties": false, "required": ["items"],
+      "properties": {
+        "title": { "type": "string", "maxLength": 60 },
+        "showPrices": { "type": "boolean" },
+        "items": {
+          "type": "array", "minItems": 1, "maxItems": 12,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["name"],
+            "properties": {
+              "name": { "type": "string", "minLength": 2, "maxLength": 60 },
+              "description": { "type": "string", "maxLength": 220 },
+              "price": { "type": "string", "maxLength": 40 }
+            }
+          }
+        }
+      }
+    },
+
+    "images": {
+      "type": "array", "maxItems": 6,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["src", "alt"],
+        "properties": {
+          "src": { "type": "string", "pattern": "^assets/[a-zA-Z0-9._-]+\\.(png|jpe?g|webp|avif)$" },
+          "alt": { "type": "string", "minLength": 3, "maxLength": 120 }
+        }
+      }
+    },
+
+    "testimonials": {
+      "type": "array", "maxItems": 6,
+      "description": "ONLY quotes the customer supplied. The agent must never invent testimonials.",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["quote", "author", "source"],
+        "properties": {
+          "quote": { "type": "string", "minLength": 10, "maxLength": 300 },
+          "author": { "type": "string", "minLength": 2, "maxLength": 60 },
+          "source": { "const": "customer" }
+        }
+      }
+    },
+
+    "faq": {
+      "type": "array", "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["q", "a"],
+        "properties": {
+          "q": { "type": "string", "minLength": 5, "maxLength": 120 },
+          "a": { "type": "string", "minLength": 5, "maxLength": 500 }
+        }
+      }
+    },
+
+    "contact": {
+      "type": "object", "additionalProperties": false, "required": ["show"],
+      "properties": {
+        "whatsapp": { "type": "string", "pattern": "^$|^\\+?[0-9][0-9 \\-]{7,17}[0-9]$" },
+        "phone": { "type": "string", "pattern": "^$|^\\+?[0-9][0-9 \\-]{7,17}[0-9]$" },
+        "email": { "type": "string", "pattern": "^$|^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", "maxLength": 100 },
+        "mapUrl": { "type": "string", "pattern": "^$|^https://[^\\s<>\"']+$", "maxLength": 500 },
+        "show": { "type": "array", "uniqueItems": true, "items": { "enum": ["whatsapp", "call", "email", "map", "social"] } },
+        "social": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "instagram": { "type": "string", "pattern": "^$|^https://[^\\s<>\"']+$", "maxLength": 300 },
+            "facebook": { "type": "string", "pattern": "^$|^https://[^\\s<>\"']+$", "maxLength": 300 },
+            "tiktok": { "type": "string", "pattern": "^$|^https://[^\\s<>\"']+$", "maxLength": 300 },
+            "linkedin": { "type": "string", "pattern": "^$|^https://[^\\s<>\"']+$", "maxLength": 300 }
+          }
+        }
+      }
+    },
+
+    "sections": {
+      "type": "array", "uniqueItems": true,
+      "description": "Order of the sections below the hero. Sections without content are skipped.",
+      "items": { "enum": ["about", "services", "gallery", "testimonials", "faq", "contact"] }
+    }
+  }
+}
