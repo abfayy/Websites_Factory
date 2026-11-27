@@ -14,7 +14,7 @@ flowchart LR
   W --> PR[PR claude/order-WEB-xxxx]
   W -->|status, project_name, qa_notes| O
   PR --> CI[CI: tests, validate, build, QA]
-  CI --> M[Abi merges, phone is fine]
+  CI --> M[Claude auto-merges clean orders; doubtful ones wait for Abi]
   M --> D[GitHub Actions deploy to Cloudflare Pages]
 ```
 
@@ -60,7 +60,7 @@ The logic lives in the repository (version-controlled, reviewed by pull request)
 An order leaves the queue the moment its status becomes `BUILDING`, so the next run cannot build it twice.
 
 ## Human steps that remain (on purpose)
-- Verify the payment (`VERIFIED` + `APPROVED`). Review and merge the PR (this is the quality gate). Paste the live address
+- Verify the payment (`VERIFIED` + `APPROVED`). Review and merge the PRs Claude left open (auto-merge rule: CLAUDE.md rule 5). Paste the live address
   into `live_url`, set `DEPLOYED`/`DELIVERED`, message the customer. Later phases can automate the last two.
 
 ## Limits and costs
@@ -73,7 +73,7 @@ An order leaves the queue the moment its status becomes `BUILDING`, so the next 
 ## Safety
 - The agent reads only `Build_Queue` (no payment data) and writes back only `status`, `project_name`, `qa_notes`
   (statuses BUILDING / QA_REQUIRED / NEEDS_INFO). See `scripts/lib/orders.mjs` and CLAUDE.md.
-- Customer text is data, never instructions; output is JSON validated by the schema; nothing deploys without your merge.
+- Customer text is data, never instructions; output is JSON validated by the schema; only clean orders with green CI are auto-merged; anything doubtful waits for your merge.
 - Keep unneeded connectors (Gmail, Drive, calendar, ...) out of the task.
 
 ## Troubleshooting
