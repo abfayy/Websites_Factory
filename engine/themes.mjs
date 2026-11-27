@@ -13,7 +13,7 @@ const COLORS = {
   purple: { primary: '#6d28d9', accent: '#f472b6' },
   teal: { primary: '#0f766e', accent: '#38bdf8' },
   pink: { primary: '#be185d', accent: '#fb923c' },
-  'black-gold': { primary: '#1f2937', accent: '#b45309' }
+  'black-gold': { primary: '#1f2937', accent: '#d4a537' }
 };
 
 export const NICHE_DEFAULT_COLOR = {
@@ -38,9 +38,11 @@ export function resolveDesign({ theme = 'clean', color, niche = 'other' } = {}) 
   // Button: white text on primary, else on accent, else invert the theme (always readable + visible on the page).
   const white = '#ffffff';
   let btnBg, btnText;
-  const okBtn = (c) => contrast(white, c) >= 4.5 && contrast(c, t.bg) >= 3;
+  const ink = '#111827';
+  const okBtn = (c, txt = white) => contrast(txt, c) >= 4.5 && contrast(c, t.bg) >= 3;
   if (okBtn(primary)) { btnBg = primary; btnText = white; }
   else if (okBtn(accent)) { btnBg = accent; btnText = white; }
+  else if (okBtn(accent, ink)) { btnBg = accent; btnText = ink; }
   else { btnBg = t.text; btnText = t.bg; }
 
   // Links / headings accent: first colour readable on both the page and the card surface.
