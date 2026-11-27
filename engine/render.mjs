@@ -30,6 +30,18 @@ function contactInfo(t) {
   return { wa, tel, email, map, social };
 }
 
+// Decorative inline icons (static constants, never customer data). Colour comes from CSS (currentColor).
+const ICON_PATHS = {
+  check: 'M20 6 9 17l-5-5',
+  chat: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z',
+  phone: 'M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z',
+  mail: 'M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm18 2-10 7L2 6',
+  pin: 'M12 22s-7-6.2-7-12a7 7 0 1 1 14 0c0 5.8-7 12-7 12zm0-9a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
+  clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zm0-15v5l3 3',
+  up: 'M12 19V5m-7 7 7-7 7 7'
+};
+const icon = (name) => raw(`<svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${ICON_PATHS[name]}"/></svg>`);
+
 const SOCIAL_NAMES = { instagram: 'Instagram', facebook: 'Facebook', tiktok: 'TikTok', linkedin: 'LinkedIn' };
 
 function hasContent(t, id) {
@@ -71,71 +83,84 @@ export function renderSite(t, { year = new Date().getFullYear() } = {}) {
   // ---------- sections ----------
   const hero = html`
 <section id="top" class="hero hero-${d.hero}">
+  <div class="hero-bg" aria-hidden="true"><span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span></div>
   <div class="wrap">
-    <div>
+    <div class="hero-copy">
+      ${brand.tagline ? html`<p class="eyebrow rise">${brand.tagline}</p>` : ''}
       <h1>${t.hero.headline}</h1>
-      ${t.hero.subheadline ? html`<p class="sub">${t.hero.subheadline}</p>` : ''}
-      <ul class="chips">
-        ${brand.city ? html`<li>${brand.city}</li>` : ''}
-        ${brand.hours ? html`<li>${brand.hours}</li>` : ''}
+      ${t.hero.subheadline ? html`<p class="sub rise d2">${t.hero.subheadline}</p>` : ''}
+      <ul class="chips rise d3">
+        ${brand.city ? html`<li>${icon('pin')}${brand.city}</li>` : ''}
+        ${brand.hours ? html`<li>${icon('clock')}${brand.hours}</li>` : ''}
       </ul>
-      <div class="actions">
-        <a class="btn" href="${ctaHref}">${ctaLabel}</a>
+      <div class="actions rise d4">
+        <a class="btn" href="${ctaHref}">${ci.wa ? icon('chat') : ''}${ctaLabel}</a>
         ${ci.wa && ci.tel ? html`<a class="btn ghost" href="${'tel:+' + ci.tel}">${L.call}</a>` : ''}
       </div>
     </div>
     ${d.hero === 'split'
       ? (t.hero.image
-        ? html`<img class="hero-art" src="${t.hero.image}" alt="${t.hero.imageAlt || brand.name}">`
-        : html`<div class="hero-art" aria-hidden="true">${brand.name}</div>`)
+        ? html`<img class="hero-art rise d2" src="${t.hero.image}" alt="${t.hero.imageAlt || brand.name}">`
+        : html`<div class="hero-art rise d2" aria-hidden="true"><span>${brand.name}</span></div>`)
       : ''}
   </div>
 </section>`;
 
+  // custom section title -> show the standard label above it as a small eyebrow
+  const head = (id, title) => title && title !== L[id]
+    ? html`<div class="sec-head"><p class="eyebrow">${L[id]}</p><h2>${title}</h2></div>`
+    : html`<div class="sec-head"><h2>${L[id]}</h2></div>`;
+
   const sectionHtml = {
     about: () => html`
-<h2>${t.about.title || L.about}</h2>
-<div class="lead">${(t.about.paragraphs || []).map((p) => html`<p>${p}</p>`)}</div>
-${(t.about.highlights || []).length ? html`<ul class="chips">${t.about.highlights.map((h) => html`<li>${h}</li>`)}</ul>` : ''}`,
+${head('about', t.about.title)}
+<div class="about-grid">
+  <div class="lead">${(t.about.paragraphs || []).map((p) => html`<p>${p}</p>`)}</div>
+  ${(t.about.highlights || []).length ? html`<ul class="features">${t.about.highlights.map((h) => html`<li>${icon('check')}<span>${h}</span></li>`)}</ul>` : ''}
+</div>`,
     services: () => html`
-<h2>${t.services.title || L.services}</h2>
-<div class="cards">
+${head('services', t.services.title)}
+<div class="cards svc-cards">
   ${t.services.items.map((it) => html`
-  <article class="card">
+  <article class="card svc">
     <h3>${it.name}</h3>
     ${it.description ? html`<p>${it.description}</p>` : ''}
     ${t.services.showPrices && it.price ? html`<p class="price">${it.price}</p>` : ''}
   </article>`)}
 </div>`,
     gallery: () => html`
-<h2>${L.gallery}</h2>
+${head('gallery')}
 <div class="gallery">${t.images.map((im) => html`<img src="${im.src}" alt="${im.alt}" loading="lazy">`)}</div>`,
     testimonials: () => html`
-<h2>${L.testimonials}</h2>
+${head('testimonials')}
 <div class="cards">
   ${t.testimonials.map((q) => html`
   <blockquote class="card"><p>${q.quote}</p><cite>${q.author}</cite></blockquote>`)}
 </div>`,
     faq: () => html`
-<h2>${L.faq}</h2>
-${t.faq.map((f) => html`<details><summary>${f.q}</summary><p>${f.a}</p></details>`)}`,
+${head('faq')}
+<div class="faq-list">${t.faq.map((f) => html`<details><summary>${f.q}</summary><p>${f.a}</p></details>`)}</div>`,
     contact: () => html`
-<h2>${L.contact}</h2>
+${head('contact')}
 <div class="contact-grid">
   ${(ci.wa || ci.tel || ci.email) ? html`
   <div class="card">
     <div class="actions">
-      ${ci.wa ? html`<a class="btn" href="${'https://wa.me/' + ci.wa}">${L.whatsapp}</a>` : ''}
-      ${ci.tel ? html`<a class="btn ghost" href="${'tel:+' + ci.tel}">${L.call}</a>` : ''}
+      ${ci.wa ? html`<a class="btn" href="${'https://wa.me/' + ci.wa}">${icon('chat')}${L.whatsapp}</a>` : ''}
+      ${ci.tel ? html`<a class="btn ghost" href="${'tel:+' + ci.tel}">${icon('phone')}${L.call}</a>` : ''}
     </div>
-    ${ci.tel ? html`<p><strong>${L.phone}:</strong> <span dir="ltr">${prettyPhone(ci.tel)}</span></p>` : ''}
-    ${ci.email ? html`<p><a href="${'mailto:' + ci.email}">${ci.email}</a></p>` : ''}
+    <ul class="info">
+      ${ci.tel ? html`<li>${icon('phone')}<span><strong>${L.phone}:</strong> <span dir="ltr">${prettyPhone(ci.tel)}</span></span></li>` : ''}
+      ${ci.email ? html`<li>${icon('mail')}<a href="${'mailto:' + ci.email}">${ci.email}</a></li>` : ''}
+    </ul>
   </div>` : ''}
   ${(brand.address || ci.map || brand.hours) ? html`
   <div class="card">
-    ${brand.address ? html`<h3>${L.address}</h3><p>${brand.address}</p>` : ''}
-    ${ci.map ? html`<p><a href="${ci.map}" rel="noopener noreferrer">${L.map}</a></p>` : ''}
-    ${brand.hours ? html`<h3>${L.hours}</h3><p>${brand.hours}</p>` : ''}
+    <ul class="info">
+      ${brand.address ? html`<li>${icon('pin')}<span><strong>${L.address}</strong><br>${brand.address}</span></li>` : ''}
+      ${brand.hours ? html`<li>${icon('clock')}<span><strong>${L.hours}</strong><br>${brand.hours}</span></li>` : ''}
+    </ul>
+    ${ci.map ? html`<p><a class="btn ghost small" href="${ci.map}" rel="noopener noreferrer">${icon('pin')}${L.map}</a></p>` : ''}
   </div>` : ''}
   ${ci.social.length ? html`
   <div class="card"><ul class="social">
@@ -145,7 +170,22 @@ ${t.faq.map((f) => html`<details><summary>${f.q}</summary><p>${f.a}</p></details
   };
 
   const body = ids.map((id, i) => html`
-<section id="${id}" class="${i % 2 === 0 ? 'alt' : ''}"><div class="wrap">${sectionHtml[id]()}</div></section>`);
+<section id="${id}" class="${(i % 2 === 0 ? 'alt ' : '') + 'sec-' + id}"><div class="wrap reveal">${sectionHtml[id]()}</div></section>`);
+
+  // moving strip of service names under the hero (decorative; real list is in the services section)
+  const names = (t.services?.items || []).map((it) => it.name);
+  const ticker = names.length >= 3 ? html`
+<div class="ticker" aria-hidden="true"><div class="ticker-track">${[...names, ...names].map((n) => html`<span>${n}</span>`)}</div></div>` : '';
+
+  const ctaBand = (ci.wa || ci.tel) ? html`
+<section class="cta-band"><div class="wrap reveal">
+  <h2>${L.ctaTitle}</h2>
+  <p>${L.ctaText}</p>
+  <div class="actions">
+    ${ci.wa ? html`<a class="btn" href="${'https://wa.me/' + ci.wa}">${icon('chat')}${L.whatsapp}</a>` : ''}
+    ${ci.tel ? html`<a class="btn ghost" href="${'tel:+' + ci.tel}">${icon('phone')}${L.call}</a>` : ''}
+  </div>
+</div></section>` : '';
 
   const nav = ids.map((id) => html`<a href="${'#' + id}">${L[id]}</a>`);
 
@@ -193,9 +233,18 @@ ${live ? html`<meta property="og:url" content="${live}">` : ''}
 </div></header>
 <main id="main">
 ${hero}
+${ticker}
 ${body}
+${ctaBand}
 </main>
-<footer><div class="wrap">&copy; ${year} ${brand.name}${brand.city ? ' · ' + brand.city : ''} · ${L.rights}</div></footer>
+<footer><div class="wrap">
+  <div class="foot-grid">
+    <div><p class="foot-brand">${brand.name}</p>${brand.tagline ? html`<p>${brand.tagline}</p>` : ''}</div>
+    <nav class="foot-nav" aria-label="${L.menu}">${nav}</nav>
+  </div>
+  <div class="copy"><span>&copy; ${year} ${brand.name}${brand.city ? ' · ' + brand.city : ''} · ${L.rights}</span><a href="#top">${icon('up')}${L.top}</a></div>
+</div></footer>
+${ci.wa ? html`<a class="fab" href="${'https://wa.me/' + ci.wa}" aria-label="${L.whatsapp}">${icon('chat')}</a>` : ''}
 ${ci.wa || ci.tel ? html`<div class="mobile-bar">
   ${ci.wa ? html`<a class="btn" href="${'https://wa.me/' + ci.wa}">${L.whatsapp}</a>` : ''}
   ${ci.tel ? html`<a class="btn ghost" href="${'tel:+' + ci.tel}">${L.call}</a>` : ''}
