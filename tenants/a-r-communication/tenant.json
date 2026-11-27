@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "orderId": "WEB-0001",
+  "slug": "a-r-communication",
+  "liveUrl": "",
+  "language": "en",
+  "brand": {
+    "name": "A.R Communication",
+    "tagline": "Good quality in cheap price",
+    "niche": "other",
+    "city": "Karachi",
+    "address": "Korangi, Karachi",
+    "hours": "Daily 2pm - 12am",
+    "logo": null
+  },
+  "design": { "theme": "bold", "color": "black-gold", "tone": "professional" },
+  "seo": {
+    "title": "A.R Communication | Mobile Accessories in Korangi",
+    "description": "A.R Communication in Korangi, Karachi sells headphones, AirPods, Bluetooth devices, data cables and OTG adapters. Good quality at affordable prices."
+  },
+  "hero": {
+    "headline": "Good quality mobile accessories at affordable prices",
+    "subheadline": "Headphones, AirPods, data cables, OTG adapters and more communication accessories in Korangi, Karachi.",
+    "cta": "Ask on WhatsApp",
+    "image": null
+  },
+  "about": {
+    "title": "Your accessories shop in Korangi",
+    "paragraphs": [
+      "A.R Communication is a communication devices shop in Korangi, Karachi. We sell headphones, AirPods, Bluetooth devices, data cables, OTG adapters and other everyday accessories for your phone.",
+      "Our focus is simple: good quality products at a cheap price. Message us on WhatsApp or call to check what is in stock."
+    ],
+    "highlights": ["Good quality products", "Affordable prices", "Open 2pm - 12am"]
+  },
+  "services": {
+    "title": "What we sell",
+    "showPrices": true,
+    "items": [
+      { "name": "Headphones", "description": "Headphones for calls, music and everyday use." },
+      { "name": "AirPods and Bluetooth devices", "description": "AirPods and other Bluetooth audio accessories." },
+      { "name": "Data cables", "description": "Charging and data cables for your phone." },
+      { "name": "OTG adapters", "description": "OTG connectors to plug USB devices into your phone." },
+      { "name": "Other communication accessories", "description": "Ask us about any other communication-related product." }
+    ]
+  },
+  "faq": [
+    { "q": "What is your product quality like?", "a": "We stock good quality products at affordable prices. Message us on WhatsApp to ask about a specific item before you visit." }
+  ],
+  "contact": {
+    "whatsapp": "+92 323 9553813",
+    "phone": "+92 323 9553813",
+    "email": "muhammadmaroof1769@gmail.com",
+    "mapUrl": "https://maps.google.com/?q=Korangi+Karachi",
+    "show": ["whatsapp", "call", "email", "map"]
+  },
+  "sections": ["about", "services", "faq", "contact"]
+}
