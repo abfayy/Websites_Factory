@@ -40,9 +40,18 @@ For each order:
   the values `BUILDING`, `QA_REQUIRED`, `NEEDS_INFO`. Never write any other column or value (never APPROVED, VERIFIED,
   DEPLOYED, REJECTED, never payment columns). Never read other cells of the Orders tab.
 
+## 3b. Auto-merge (CLAUDE.md rule 5)
+For each open PR from a `claude/order-*` branch (this run's and older ones):
+- Merge it (merge commit, `expectedHeadSha` = the head you checked) only if it changes only `tenants/<slug>/`, its latest
+  CI run concluded `success`, its description says `AUTO-MERGE: ok`, and no human comment asks to hold it.
+- CI still running? Do not wait long: leave it, the next run merges it.
+- After merging, keep `status = QA_REQUIRED` and set `qa_notes = "merged <PR url>"` (Abi still records `live_url` and
+  `DEPLOYED` from the deploy summary).
+- Otherwise leave it open and give the reason in the report.
+
 ## 4. Finish
-Final report: ONE table (order id, brand, slug, PR link, result, questions). Remind Abi: review and merge the PRs you
-approve (merging deploys automatically), then copy the production address from the deploy run summary into `live_url`
+Final report: ONE table (order id, brand, slug, PR link, result, merged?, questions). Remind Abi: review and merge the
+PRs left open (merging deploys automatically), then copy the production address from the deploy run summary into `live_url`
 and set `DEPLOYED` / `DELIVERED`, and message the customer.
 
-Never merge, deploy, edit workflows, touch secrets, or push to `main`.
+Never deploy directly, edit workflows, touch secrets, or push to `main`. Merge only under the auto-merge rule (3b).

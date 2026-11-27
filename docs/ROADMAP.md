@@ -17,7 +17,7 @@ Manual steps: export CSV, run `/process-orders`, merge, paste live URL back into
   write-back (`BUILDING`, `QA_REQUIRED`, `NEEDS_INFO`).
 - Next: API trigger so an order is built the moment it is APPROVED (Apps Script `UrlFetchApp` -> routine `/fire`).
 - Next: deploy workflow reports the production URL back to the sheet (`live_url`, `DEPLOYED`).
-- Next: optional auto-merge when CI is green and the order's QA notes are clean (after ~10 supervised orders).
+- Auto-merge of clean order PRs with green CI: enabled 2026-11-27 (CLAUDE.md rule 5).
 
 ## Phase 4 - Scale
 - Cloudflare Pages allows 100 projects per account. Before ~80 customers choose one: (a) second Cloudflare account,
