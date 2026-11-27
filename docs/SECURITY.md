@@ -12,6 +12,7 @@ GitHub repository, and the reputation of every customer site.
 | XSS / injected markup on a customer site | `html` tagged template escapes all values; JSON-LD escapes `<`; semantic check rejects HTML-like text; tests inject payloads. |
 | Missing styles or weak browser protection | `_headers` sets CSP (`default-src 'none'`, style by sha256 hash, no scripts), `nosniff`, referrer and permissions policy. QA verifies the hash matches the CSS. |
 | Payment/PII leaking into a public repo | Allowlist in `scripts/lib/orders.mjs`; `.orders/` git-ignored; CI fails if private files are tracked; docs say keep the repo **private**. |
+| Cloud agent reading payment data from the sheet | It reads only the `Build_Queue` tab (formula view without payment/private columns); write-back limited to `status`, `project_name`, `qa_notes`; only the Google Sheets connector is included in the task. |
 | Fake payment -> free site | Human verification only; automatic duplicate-TID flag; the build queue requires `VERIFIED` **and** `APPROVED`. |
 | Stolen deploy token | Token scoped to *Cloudflare Pages - Edit*; stored only as GitHub secret; deploy runs only from `main` (and manual dispatch), never from pull requests. Never use `pull_request_target`. Optional required reviewer on the `production` environment. |
 | Malicious pull request | CI has `contents: read` and no secrets; branch protection on `main`. |

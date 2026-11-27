@@ -22,9 +22,17 @@ export function parseCsv(text) {
   return rows.filter((r) => r.length > 1 || (r.length === 1 && r[0] !== ''));
 }
 
-/** Header row + data rows -> array of objects keyed by the header names. */
-export function csvToObjects(text) {
-  const [head, ...rest] = parseCsv(text);
+/** 2-D array (header row first, as returned by the Sheets API / connector) -> array of objects keyed by header. */
+export function rowsToObjects(rows) {
+  const [head, ...rest] = rows;
   if (!head) return [];
-  return rest.map((r) => Object.fromEntries(head.map((h, i) => [h.trim(), (r[i] ?? '').trim()])));
+  const keys = head.map((h) => String(h ?? '').trim());
+  return rest
+    .filter((r) => r.some((c) => String(c ?? '').trim() !== ''))
+    .map((r) => Object.fromEntries(keys.map((k, i) => [k, String(r[i] ?? '').trim()])));
+}
+
+/** CSV text -> array of objects keyed by header. */
+export function csvToObjects(text) {
+  return rowsToObjects(parseCsv(text));
 }

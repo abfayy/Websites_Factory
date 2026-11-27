@@ -29,7 +29,7 @@ You are the Starter-website builder. You receive an order id such as `WEB-0007`.
 | theme | design.theme | Clean & Modern=clean, Bold & Dark=bold, Warm & Friendly=warm, Elegant & Premium=elegant, Minimal=minimal |
 | brand_color | design.color | Blue/Green/Red/Orange/Purple/Teal/Pink lowercase, Black & Gold=black-gold. "Let the designer choose" or a free-text colour: pick the closest of the 8, or omit `color` (niche default) |
 | tone | design.tone | Professional / Friendly / Premium / Fun & Youthful=youthful |
-| site_language | language | English=en, Urdu=ur, English + Urdu=en (bilingual pages are not supported yet: say so in the report) |
+| site_language | language | **Default is English (`en`)**. Only a customer who explicitly chose Urdu gets `ur`. Empty/unclear=en. "English + Urdu"=en (bilingual pages are not supported yet: say so in the report) |
 | description, usp, target_customers, tagline | hero, about, seo | **Write the copy yourself** from these facts only. Tone from `design.tone`. Headline 5-90 chars, SEO title 10-60, SEO description 50-160 incl. city + what they do |
 | services_list | services.items | one item per line `Name - description - price`; keep the customer's wording; price only if given |
 | show_prices | services.showPrices | Yes=true, No=false, Only some=true (items without a price simply show none) |
@@ -59,7 +59,10 @@ edit the engine, schema, tests or workflows to make a failure go away.
 Optionally preview: `node scripts/preview.mjs <slug>` and look at the page (screenshot if a browser tool is available).
 
 ## 4. Hand over
-- `git switch -c order/<ORDER_ID>`; commit only `tenants/<slug>/`; push; open a pull request titled
-  `Order <ORDER_ID>: <brand name>`. Do not merge. Do not push to main.
+- `git switch -c claude/order-<ORDER_ID>` (cloud scheduled tasks push `claude/`-prefixed branches by default); commit only
+  `tenants/<slug>/`; push; open a pull request titled `Order <ORDER_ID>: <brand name>` (`gh pr create`, or `gh api
+  repos/<owner>/<repo>/pulls` if `gh pr create` is unavailable). Do not merge. Do not push to main.
+- Unattended run (no human to ask)? Decide, state the decision in the PR description, continue. Only stop for the
+  NEEDS_INFO / not-approved cases above.
 - Final report (short, Roman Urdu / English mix): slug, expected URL `https://<slug>.pages.dev`, sections built, anything
   you left out and why, warnings, questions for the customer, and "status -> QA_REQUIRED (please review the PR)".

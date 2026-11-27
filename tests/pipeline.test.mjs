@@ -115,3 +115,46 @@ test('QA flags a missing _headers file', () => {
 test('visibleText ignores style, script, comments and tags', () => {
   assert.equal(visibleText('<!-- c --><style>a{}</style><script>x()</script><p>Hello <b>&amp; bye</b></p>'), 'Hello & bye');
 });
+
+// ---------- Build_Queue formula + sheet-rows input ----------
+import { rowsToObjects } from '../scripts/lib/csv.mjs';
+import { ORDERS_SHEET_COLUMNS, buildQueueFormula, columnLetter, WRITEBACK_FIELDS, WRITEBACK_STATUSES } from '../scripts/lib/orders.mjs';
+
+test('rowsToObjects: sheet API arrays behave like CSV rows', () => {
+  assert.deepEqual(rowsToObjects([['order_id', 'whatsapp'], ['WEB-0001', '03001234567'], ['', '']]), [{ order_id: 'WEB-0001', whatsapp: '03001234567' }]);
+  assert.deepEqual(rowsToObjects([]), []);
+  assert.deepEqual(rowsToObjects([['a']]), []);
+});
+
+test('columnLetter', () => {
+  assert.deepEqual([1, 26, 27, 52, 53, 59].map(columnLetter), ['A', 'Z', 'AA', 'AZ', 'BA', 'BG']);
+});
+
+test('ORDERS_SHEET_COLUMNS equals ORDER_COLUMNS of the Apps Script (cannot drift)', () => {
+  const gs = readFileSync(new URL('../google/setup-form.gs', import.meta.url), 'utf8');
+  const fields = gs.slice(gs.indexOf('const FIELDS'), gs.indexOf('const FIELD_KEYS'));
+  const keys = [...fields.matchAll(/\{\s*key:\s*'([a-z_0-9]+)'/g)].map((m) => m[1]);
+  const admin = [...gs.match(/const ADMIN_COLUMNS = \[([^\]]*)\]/)[1].matchAll(/'([a-z_]+)'/g)].map((m) => m[1]);
+  assert.deepEqual(ORDERS_SHEET_COLUMNS, ['order_id', 'created_at', 'status', 'payment_status', ...keys, ...admin]);
+});
+
+test('Build_Queue formula selects only allowlisted columns and the VERIFIED/APPROVED filter', () => {
+  const f = buildQueueFormula();
+  const selected = /select (.*?) where/.exec(f)[1].split(', ').map((c) => ORDERS_SHEET_COLUMNS[Number(c.slice(3)) - 1]);
+  assert.deepEqual(selected, ORDER_PUBLIC_FIELDS);
+  for (const k of ORDER_PRIVATE_FIELDS) assert.ok(!selected.includes(k), `${k} would be exposed`);
+  const st = ORDERS_SHEET_COLUMNS.indexOf('status') + 1, ps = ORDERS_SHEET_COLUMNS.indexOf('payment_status') + 1;
+  assert.ok(f.includes(`Col${ps} = 'VERIFIED'`) && f.includes(`Col${st} = 'APPROVED'`) && f.includes(`Col${st} = 'REVISION'`));
+  assert.ok(f.startsWith('=QUERY(Orders!A:BG,'));
+});
+
+test('write-back is limited to status/project_name/qa_notes and safe statuses', () => {
+  assert.deepEqual(WRITEBACK_FIELDS, ['status', 'project_name', 'qa_notes']);
+  for (const k of ORDER_PRIVATE_FIELDS) assert.ok(!WRITEBACK_FIELDS.includes(k));
+  assert.ok(!WRITEBACK_STATUSES.includes('APPROVED') && !WRITEBACK_STATUSES.includes('DEPLOYED') && !WRITEBACK_STATUSES.includes('REJECTED'));
+});
+
+test('docs/AUTOMATION.md contains the current Build_Queue formula', () => {
+  const doc = readFileSync(new URL('../docs/AUTOMATION.md', import.meta.url), 'utf8');
+  assert.ok(doc.includes(buildQueueFormula()), 'run `npm run queue-formula` and update docs/AUTOMATION.md');
+});

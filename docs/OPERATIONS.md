@@ -11,19 +11,23 @@
 4. Optional: Settings -> Environments -> `production` -> add yourself as *Required reviewer* for a manual approval before every deploy.
 
 ## Daily routine (about 10 minutes, twice a day)
+Automatic build setup: see `docs/AUTOMATION.md` (one-time, 15 minutes). After that:
 1. **Payments**: open the Orders sheet. For every `NEW`/`PAYMENT_REVIEW` row compare TID, amount (Rs. 972) and date with your
    JazzCash/Easypaisa messages. Match -> `payment_status = VERIFIED`, `status = APPROVED`. No match -> `REJECTED` or `ON_HOLD`.
    Rows flagged `DUPLICATE_TID` need extra care.
-2. **Export**: sheet tab *Orders* -> File -> Download -> CSV.
-3. **Build**: in the repo run Claude Code and type `/process-orders <path-to-csv>`. It opens one PR per order.
-4. **Review** each PR (a small `tenant.json` diff + green CI). Open the preview if you want: `node scripts/preview.mjs <slug>`.
-5. **Merge** -> the *Deploy* workflow publishes the site. Open the run summary: it shows the production address.
-6. **Close the loop**: paste the address into `live_url`, set `status = DEPLOYED`, message the customer on WhatsApp/e-mail,
+2. **Build**: nothing to do. The cloud scheduled task (10:00 and 20:00) picks up every VERIFIED + APPROVED order, builds it and
+   opens a pull request; the row becomes `QA_REQUIRED` (or `NEEDS_INFO` with the questions in `qa_notes`).
+   In a hurry? claude.ai/code/routines -> your task -> **Run now**.
+3. **Review** each PR (a small `tenant.json` diff + green CI). Preview locally if you want: `node scripts/preview.mjs <slug>`.
+4. **Merge** -> the *Deploy* workflow publishes the site. Open the run summary: it shows the production address.
+5. **Close the loop**: paste the address into `live_url`, set `status = DEPLOYED`, message the customer on WhatsApp/e-mail,
    later `DELIVERED`. Logo/photos that arrive on WhatsApp: save them as `tenants/<slug>/assets/<file>` (max 1 MB each,
    png/jpg/webp), reference them in `tenant.json`, PR again.
 
+Manual fallback (no cloud task): download the Orders tab as CSV and run `/process-orders csv:<path>` in Claude Code.
+
 ## Revisions (1 minor revision is included)
-Set the row to `REVISION` with the change request in `special_notes`/`admin_notes`, export, run `/process-orders`.
+Put the change request in `special_notes`, set the row to `REVISION` (the next scheduled run, or **Run now**, picks it up).
 The agent edits the existing `tenants/<slug>/tenant.json` and opens a PR. Increase `revisions_used`.
 
 ## Rollback / removal

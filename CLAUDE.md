@@ -22,6 +22,7 @@ processing an order (change them only in a separate, explicitly requested engine
    Testimonials only if the customer supplied them (`"source": "customer"`). If something is missing, leave it out or
    mark the order NEEDS_INFO.
 5. **Never merge, deploy, push to `main`, edit workflows, or touch secrets.** You open a pull request; a human merges.
+   When writing back to the Orders sheet, touch only `status` (BUILDING / QA_REQUIRED / NEEDS_INFO), `project_name` and `qa_notes`.
 6. No external scripts, trackers, fonts or iframes. The engine already forbids them; do not try to work around QA.
 
 ## Commands
@@ -33,11 +34,13 @@ processing an order (change them only in a separate, explicitly requested engine
 | `node scripts/qa.mjs <slug>` | QA gate on the built output |
 | `node scripts/preview.mjs <slug>` | local preview at http://localhost:4173 with the real security headers |
 | `node scripts/orders-import.mjs <orders.csv>` | Orders-sheet CSV -> `.orders/*.json` (allowlisted fields only) |
-| `/process-orders` | slash command that runs the whole order workflow |
+| `/process-orders sheet:<id>` or `csv:<path>` | slash command that runs the whole order workflow |
+| `npm run queue-formula` | prints the Google Sheets formula for the `Build_Queue` tab |
 
 ## Workflow for one order (the `starter-worker` agent does this; see `.claude/agents/starter-worker.md`)
 `.orders/WEB-xxxx.json` -> choose slug -> write `tenants/<slug>/tenant.json` -> `validate` -> `build` -> `qa` -> fix until
-green -> look at the preview -> branch `order/WEB-xxxx` -> commit -> pull request -> report to the human.
+green -> look at the preview -> branch `claude/order-WEB-xxxx` -> commit -> pull request -> report to the human.
+In the cloud (scheduled task) the same workflow runs unattended: see `docs/AUTOMATION.md`.
 
 ## Conventions
 - Node 22, ES modules, **zero npm dependencies** (keep it that way; it keeps CI fast and the supply chain tiny).
