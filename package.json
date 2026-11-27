@@ -16,6 +16,7 @@
     "check": "npm test && npm run test:form && npm run validate && npm run build && npm run qa",
     "preview": "node scripts/preview.mjs",
     "orders:import": "node scripts/orders-import.mjs",
-    "test:form": "node google/test-form-script.cjs"
+    "test:form": "node google/test-form-script.cjs",
+    "queue-formula": "node scripts/queue-formula.mjs"
   }
 }

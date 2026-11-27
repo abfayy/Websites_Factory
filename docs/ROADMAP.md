@@ -12,12 +12,12 @@ Manual steps: export CSV, run `/process-orders`, merge, paste live URL back into
 - GLBGPT MCP for generated hero images (only when the customer allowed stock/AI imagery); store under `assets/`.
 - Bilingual (English + Urdu) layout in the engine (today `en`, `ur`, `roman-ur` are single-language).
 
-## Phase 3 - Automation of the sheet bridge
-- Apps Script **Orders API** (web app, secret token): `GET queue`, `POST status`. Replaces CSV export and writes
-  `BUILDING / QA_REQUIRED / DEPLOYED / live_url` back automatically.
-- Claude Code **scheduled task** (about twice a day) that runs `/process-orders` against the API (verify the schedule
-  against the current plan limits before relying on it).
-- Deploy workflow posts the production URL back to the sheet.
+## Phase 3 - Hands-off bridge (started: see docs/AUTOMATION.md)
+- DONE: `Build_Queue` tab + Google Sheets connector + Claude Code cloud scheduled task (twice a day / Run now); status
+  write-back (`BUILDING`, `QA_REQUIRED`, `NEEDS_INFO`).
+- Next: API trigger so an order is built the moment it is APPROVED (Apps Script `UrlFetchApp` -> routine `/fire`).
+- Next: deploy workflow reports the production URL back to the sheet (`live_url`, `DEPLOYED`).
+- Next: optional auto-merge when CI is green and the order's QA notes are clean (after ~10 supervised orders).
 
 ## Phase 4 - Scale
 - Cloudflare Pages allows 100 projects per account. Before ~80 customers choose one: (a) second Cloudflare account,

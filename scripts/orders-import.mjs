@@ -1,22 +1,42 @@
 #!/usr/bin/env node
-// Phase 1 bridge Google Sheet -> repo workspace.
-//   1. In the "Orders" sheet: File > Download > Comma-separated values (.csv)
-//   2. node scripts/orders-import.mjs ~/Downloads/Website\ Factory\ -\ Orders\ -\ Orders.csv
+// Bridge Google Sheet -> repo workspace. Two input modes, same privacy allowlist:
+//   CSV (manual):   node scripts/orders-import.mjs <orders.csv>
+//   Rows (cloud):   node scripts/orders-import.mjs --rows <rows.json>
+//                   rows.json = JSON 2-D array, header row first (what the Sheets connector returns for the
+//                   "Build_Queue" tab; see docs/AUTOMATION.md). The file must live OUTSIDE the repo (e.g. /tmp).
 // Writes .orders/<ORDER_ID>.json for every build-ready order (payment VERIFIED + status APPROVED/REVISION),
 // containing ONLY allowlisted fields, plus .orders/_queue.json. .orders/ is gitignored.
 // Author/watermark: abdullah fayyaz
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { csvToObjects } from './lib/csv.mjs';
+import { csvToObjects, rowsToObjects } from './lib/csv.mjs';
 import { isBuildReady, toOrderRecord } from './lib/orders.mjs';
 import { ROOT } from './lib/tenants.mjs';
 
-const [csvPath] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-if (!csvPath) { console.error('Usage: node scripts/orders-import.mjs <orders.csv>'); process.exit(2); }
+const args = process.argv.slice(2);
+const rowsMode = args.includes('--rows');
+const [input] = args.filter((a) => !a.startsWith('--'));
+if (!input) {
+  console.error('Usage: node scripts/orders-import.mjs <orders.csv>\n       node scripts/orders-import.mjs --rows <rows.json>');
+  process.exit(2);
+}
 
-const rows = csvToObjects(readFileSync(csvPath, 'utf8'));
-if (!rows.length || !('order_id' in rows[0])) {
-  console.error('This does not look like the Orders sheet (no order_id column). Export the "Orders" tab, not another tab.');
+let rows;
+try {
+  const text = readFileSync(input, 'utf8');
+  rows = rowsMode ? rowsToObjects(JSON.parse(text)) : csvToObjects(text);
+} catch (e) {
+  console.error(`Could not read ${input}: ${e.message}`);
+  process.exit(1);
+}
+if (!rows.length) {
+  console.log('Queue is empty: nothing to build.');
+  mkdirSync(path.join(ROOT, '.orders'), { recursive: true });
+  writeFileSync(path.join(ROOT, '.orders', '_queue.json'), '[]');
+  process.exit(0);
+}
+if (!('order_id' in rows[0])) {
+  console.error('This does not look like the Orders / Build_Queue sheet (no order_id column).');
   process.exit(1);
 }
 
